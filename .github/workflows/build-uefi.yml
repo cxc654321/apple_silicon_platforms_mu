@@ -1,5 +1,5 @@
 # Project Mu UEFI for Apple silicon — GitHub Actions 构建
-# 产物：Actions run 页面底部 Artifacts 里的 uefi-firmware.zip（含 .fd）
+# 产物：Actions run 页面底部 Artifacts → uefi-firmware-DEBUG.zip（内含 .fd）
 name: build-uefi
 
 on:
@@ -76,7 +76,7 @@ jobs:
           source venv/bin/activate
           python -m pip install --upgrade pip
           pip install --upgrade -r pip-requirements.txt
-          command -v stuart_setup > /dev/null && echo "stuart OK ($(stuart_setup --version 2>/dev/null || echo available))"
+          command -v stuart_setup > /dev/null && echo "stuart OK"
 
       - name: 导出工具链环境变量
         run: |
@@ -86,7 +86,6 @@ jobs:
           echo "GCC_AARCH64_PREFIX=aarch64-linux-gnu-" >> "$GITHUB_ENV"
           echo "GCC5_AARCH64_PREFIX=aarch64-linux-gnu-" >> "$GITHUB_ENV"
           echo "LLVM_BIN=$LLVM_BIN" >> "$GITHUB_ENV"
-          echo "使用 LLVM: ${LLVM_BIN}"
           "${LLVM_BIN}/clang" --version | head -2
 
       - name: 展开平台列表
@@ -99,6 +98,16 @@ jobs:
           fi
           echo "list=$LIST" >> "$GITHUB_OUTPUT"
           echo "将构建: $LIST"
+
+      # ---------- L1-a: 静态引用检查（本地零依赖，秒级） ----------
+      - name: L1 静态引用检查
+        continue-on-error: true
+        run: |
+          if [ -f tools/check_refs.py ]; then
+            python3 tools/check_refs.py
+          else
+            echo "tools/check_refs.py 不存在，跳过"
+          fi
 
       - name: 拉取 Mu 子模块（stuart_setup）
         run: |
@@ -144,37 +153,44 @@ jobs:
         if: always()
         run: |
           mkdir -p dist
-          for P in ${{ steps.plats.outputs.list }}; do
-            OUT="Build/$P-AARCH64/${BUILD_TARGET}_CLANGPDB"
-            echo "--- $P -> $OUT"
-            if [ -d "$OUT" ]; then
-              find "$OUT" -type f \( -name '*.fd' -o -name '*.Fv' -o -name '*.fv' \) \
-                -exec cp {} dist/ \; 2>/dev/null
-            fi
-          done
+          echo "=== Build 目录结构 ==="
+          find Build -maxdepth 2 -type d 2>/dev/null | head -20
+          echo "=== 所有 .fd ==="
+          find Build -type f -iname '*.fd' -print 2>/dev/null
+          find Build -type f -iname '*.fd' -exec cp {} dist/ \; 2>/dev/null
+          ls -lh dist 2>/dev/null || true
           echo "### 构建产物" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [ -n "$(ls -A dist 2>/dev/null)" ]; then
-            ls -lh dist
             echo '| 文件 | 大小 |' >> "$GITHUB_STEP_SUMMARY"
             echo '|---|---|' >> "$GITHUB_STEP_SUMMARY"
             for f in dist/*; do
               echo "| $(basename "$f") | $(du -h "$f" | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
             done
           else
-            echo "没有找到 .fd 文件，请查看上面的构建日志。" >> "$GITHUB_STEP_SUMMARY"
+            echo "未找到 .fd，请查看本步骤日志里的目录结构。" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # ---------- L1-b: 固件结构校验 ----------
+      - name: L1 固件结构校验
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ ! -f tools/verify_fw.py ]; then echo "跳过"; exit 0; fi
+          for f in dist/*.fd dist/*.FD; do
+            [ -e "$f" ] || continue
+            echo "::group::verify $(basename "$f")"
+            python3 tools/verify_fw.py "$f"
+            echo "::endgroup::"
+          done
 
       - name: ACPI 表校验（软检查）
         if: always()
         continue-on-error: true
         run: |
-          for P in ${{ steps.plats.outputs.list }}; do
-            OUT="Build/$P-AARCH64/${BUILD_TARGET}_CLANGPDB"
-            find "$OUT" -name '*.aml' 2>/dev/null | head -5 | while read -r f; do
-              echo "== $f"
-              iasl -d "$f" 2>&1 | tail -4
-            done
+          find Build -name '*.aml' 2>/dev/null | head -10 | while read -r f; do
+            echo "== $f"
+            iasl -d "$f" 2>&1 | tail -4
           done
 
       - name: 上传固件
