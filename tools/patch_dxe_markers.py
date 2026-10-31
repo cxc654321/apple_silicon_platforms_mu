@@ -31,7 +31,9 @@ def marker_code(x, color):
 
 def find_definition(root, name):
     """Return (path, line_index) of a top-level definition of name."""
-    pat = re.compile(r'^[A-Za-z_][A-Za-z0-9_ \t\*]*\b' + name + r'\s*\(', re.M)
+    # EDK2 style puts the return type and EFIAPI on their own lines, so the
+    # definition starts with the bare function name at column 0.
+    pat = re.compile(r'^' + name + r'\s*\(', re.M)
     for dirpath, _dirnames, filenames in os.walk(root):
         for fn in filenames:
             if not fn.endswith('.c'):
@@ -79,4 +81,6 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(0 if main() == 0 else 0)
+    # Fail the build if instrumentation did not land: a silently unpatched
+    # firmware wastes a whole hardware test cycle.
+    sys.exit(main())
