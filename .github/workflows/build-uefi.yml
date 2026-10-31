@@ -131,6 +131,12 @@ jobs:
             echo "::endgroup::"
           done
 
+      - name: 注入 DXE 埋点（仅调试）
+        run: |
+          ls -d MU_BASECORE >/dev/null 2>&1 || { echo "MU_BASECORE 缺失，跳过埋点"; exit 0; }
+          python3 tools/patch_dxe_markers.py MU_BASECORE || true
+          grep -rn "MuFb" MU_BASECORE --include=*.c | head -5 || true
+
       - name: stuart_build
         id: build
         continue-on-error: true
