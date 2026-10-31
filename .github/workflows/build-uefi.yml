@@ -26,9 +26,10 @@ on:
           - DEBUG
           - RELEASE
   push:
-    branches: [main]
+    branches: [main, ci/uefi-native-baseline]
     paths:
       - '.github/workflows/build-uefi.yml'
+      - 'Platform/MacBookAirMid2020Pkg/**'
 
 permissions:
   contents: read
@@ -192,6 +193,22 @@ jobs:
             echo "== $f"
             iasl -d "$f" 2>&1 | tail -4
           done
+
+      - name: 校验 M1 Air ARM64 镜像头
+        run: |
+          python3 - <<'PY'
+          import pathlib, struct
+          files = list(pathlib.Path('dist').glob('*J313*'))
+          if not files:
+              raise SystemExit('No J313 firmware produced')
+          for path in files:
+              data = path.read_bytes()
+              assert data[56:60] == bytes.fromhex('41524d64'), path
+              size = struct.unpack_from('<Q', data, 16)[0]
+              assert size == 0x1e00000 and len(data) <= size, (path, size, len(data))
+              assert data[:8] == bytes.fromhex('01000010ff1f0014'), path
+              print(path, 'length=', len(data), 'declared=', size)
+          PY
 
       - name: 上传固件
         if: always() && hashFiles('dist/*') != ''
