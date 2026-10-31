@@ -38,12 +38,39 @@ UINT32 InitializeUART(VOID);
 
 VOID EFIAPI ProcessLibraryConstructorList(VOID);
 
+/* Debug-only: paint a visible block on the framebuffer m1n1 set up before any
+ * library or serial output is available, to prove PrePi actually executes. */
+STATIC
+VOID
+PaintBootMarker (
+  VOID
+  )
+{
+  volatile UINT32  *Fb;
+  UINTN            Row;
+  UINTN            Col;
+  CONST UINTN      Stride = 2560;
+  CONST UINTN      X0 = 80;
+  CONST UINTN      Y0 = 80;
+  CONST UINTN      W  = 320;
+  CONST UINTN      H  = 160;
+
+  Fb = (volatile UINT32 *)(UINTN)0x9E2624000ULL;
+  for (Row = 0; Row < H; Row++) {
+    for (Col = 0; Col < W; Col++) {
+      Fb[(Y0 + Row) * Stride + (X0 + Col)] = 0x00FF00FF;
+    }
+  }
+}
+
 VOID Main(IN VOID *StackBase, IN UINTN StackSize, IN VOID *DeviceTreePtr, IN UINT64 UefiMemoryBase)
 {
     EFI_HOB_HANDOFF_INFO_TABLE  *HobList;
     EFI_STATUS Status;
 
     UINTN UefiMemoryLength = FixedPcdGet32(PcdSystemMemoryUefiRegionSize);
+
+    PaintBootMarker ();
 
     DEBUG(
         (EFI_D_INFO | EFI_D_LOAD,
