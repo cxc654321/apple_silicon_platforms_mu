@@ -42,23 +42,23 @@ VOID EFIAPI ProcessLibraryConstructorList(VOID);
  * library or serial output is available, to prove PrePi actually executes. */
 STATIC
 VOID
-PaintBootMarker (
-  VOID
+PaintMarker (
+  IN UINTN   X0,
+  IN UINTN   Y0,
+  IN UINT32  Color
   )
 {
   volatile UINT32  *Fb;
   UINTN            Row;
   UINTN            Col;
   CONST UINTN      Stride = 2560;
-  CONST UINTN      X0 = 80;
-  CONST UINTN      Y0 = 80;
-  CONST UINTN      W  = 320;
-  CONST UINTN      H  = 160;
+  CONST UINTN      W = 200;
+  CONST UINTN      H = 120;
 
   Fb = (volatile UINT32 *)(UINTN)0x9E2624000ULL;
   for (Row = 0; Row < H; Row++) {
     for (Col = 0; Col < W; Col++) {
-      Fb[(Y0 + Row) * Stride + (X0 + Col)] = 0x00FF00FF;
+      Fb[(Y0 + Row) * Stride + (X0 + Col)] = Color;
     }
   }
 }
@@ -70,7 +70,7 @@ VOID Main(IN VOID *StackBase, IN UINTN StackSize, IN VOID *DeviceTreePtr, IN UIN
 
     UINTN UefiMemoryLength = FixedPcdGet32(PcdSystemMemoryUefiRegionSize);
 
-    PaintBootMarker ();
+    PaintMarker (80, 80, 0x00FF00FF);
 
     DEBUG(
         (EFI_D_INFO | EFI_D_LOAD,
@@ -98,6 +98,8 @@ VOID Main(IN VOID *StackBase, IN UINTN StackSize, IN VOID *DeviceTreePtr, IN UIN
 
     PrePeiSetHobList(HobList);
 
+    PaintMarker (360, 80, 0x000000FF);   /* M2: HOB list ready */
+
     //set up memory HOBs
     DEBUG((EFI_D_INFO | EFI_D_LOAD, "Invalidating data cache.\n"));
 
@@ -107,6 +109,7 @@ VOID Main(IN VOID *StackBase, IN UINTN StackSize, IN VOID *DeviceTreePtr, IN UIN
         (EFI_D_INFO | EFI_D_LOAD, 
         "Beginning memory hand off block setup.\n"));
     Status = MemoryPeim(UefiMemoryBase, UefiMemoryLength);
+    PaintMarker (640, 80, 0x0000FFFF);   /* M3: after MemoryPeim */
     if(EFI_ERROR(Status))
     {
         DEBUG(
@@ -136,6 +139,7 @@ VOID Main(IN VOID *StackBase, IN UINTN StackSize, IN VOID *DeviceTreePtr, IN UIN
 
     DEBUG((EFI_D_INFO | EFI_D_LOAD, "Starting PlatformPeim\n"));
     Status = PlatformPeim();
+    PaintMarker (920, 80, 0x00FFFF00);   /* M4: after PlatformPeim */
     ASSERT_EFI_ERROR(Status);
 
     // SEC phase needs to run library constructors by hand.
@@ -145,6 +149,7 @@ VOID Main(IN VOID *StackBase, IN UINTN StackSize, IN VOID *DeviceTreePtr, IN UIN
     // FV.
     DEBUG((DEBUG_INFO, "Decompressing FV...\n"));
     Status = DecompressFirstFv();
+    PaintMarker (1200, 80, 0x00FFFFFF);  /* M5: after DecompressFirstFv */
     ASSERT_EFI_ERROR(Status);
 
     // Load the DXE Core and transfer control to it
