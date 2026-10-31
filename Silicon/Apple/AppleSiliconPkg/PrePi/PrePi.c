@@ -157,9 +157,12 @@ VOID Main(IN VOID *StackBase, IN UINTN StackSize, IN VOID *DeviceTreePtr, IN UIN
         (EFI_D_INFO | EFI_D_LOAD,
         "Loading DXE Core now\n")
         );
+    PaintMarker (1480, 80, 0x0000FF00); /* M6: about to call LoadDxeCoreFromFv */
     Status = LoadDxeCoreFromFv(NULL, 0);
     ASSERT_EFI_ERROR(Status);
     
+    PaintMarker (1760, 80, 0x00FF0000); /* M7: LoadDxeCoreFromFv returned (error path) */
+
     //if we reach here, something has *seriously* gone wrong
     CpuDeadLoop();
 }
