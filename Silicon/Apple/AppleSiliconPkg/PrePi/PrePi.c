@@ -70,6 +70,13 @@ VOID Main(IN VOID *StackBase, IN UINTN StackSize, IN VOID *DeviceTreePtr, IN UIN
 
     UINTN UefiMemoryLength = FixedPcdGet32(PcdSystemMemoryUefiRegionSize);
 
+    /* The DSC declares PcdFdBaseAddress/PcdFvBaseAddress as 0x0 (placeholder).
+     * m1n1 kboot always places this image at Pcd-loaded base 0x809200000; the
+     * firmware volume starts 0x8000 into the device image. Without this the
+     * FV HOBs point at 0 and LoadDxeCoreFromFv can never find the DXE core. */
+    PatchPcdSet64 (PcdFdBaseAddress, 0x809200000ULL);
+    PatchPcdSet64 (PcdFvBaseAddress, 0x809208000ULL);
+
     PaintMarker (80, 80, 0x00FF00FF);
 
     DEBUG(
