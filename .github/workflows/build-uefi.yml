@@ -30,6 +30,7 @@ on:
     paths:
       - '.github/workflows/build-uefi.yml'
       - 'Platform/MacBookAirMid2020Pkg/**'
+      - 'Silicon/Apple/**'
 
 permissions:
   contents: read
