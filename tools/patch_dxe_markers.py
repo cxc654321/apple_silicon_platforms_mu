@@ -69,8 +69,11 @@ def main():
     for name, x, color in targets:
         path, off = find_definition(root, name)
         if not path:
+            # LoadDxeCoreFromFv lives in a package we do not patch; only DxeMain
+            # is treated as a hard requirement.
             print('WARN: definition of %s not found under %s' % (name, root))
-            rc = 1
+            if name == 'DxeMain':
+                rc = 1
             continue
         if insert_marker(path, off, x, color):
             print('patched %s in %s (x=%d)' % (name, path, x))
