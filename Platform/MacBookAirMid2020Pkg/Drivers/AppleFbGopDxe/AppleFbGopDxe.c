@@ -132,7 +132,6 @@ AppleFbGopEntry (
   mMode.Info             = &mModeInfo;
   mMode.SizeOfInfo       = sizeof (mModeInfo);
   mMode.MaxMode          = 1;
-  mMode.ModeInfo         = &mModeInfo;
   mMode.FrameBufferBase  = APPLE_FB_BASE;
   mMode.FrameBufferSize  = (UINTN)APPLE_FB_STRIDE * APPLE_FB_HEIGHT * (APPLE_FB_BPP / 8);
 
