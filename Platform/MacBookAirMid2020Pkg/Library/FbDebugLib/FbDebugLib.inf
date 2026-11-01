@@ -1,0 +1,20 @@
+## @file
+#  DebugLib that paints DEBUG() strings onto m1n1's framebuffer.
+##
+
+[Defines]
+  INF_VERSION    = 0x0001001A
+  BASE_NAME      = FbDebugLib
+  FILE_GUID      = 2f6b9d61-5c74-4a90-9c31-8b7d5e2a4413
+  MODULE_TYPE    = BASE
+  VERSION_STRING = 1.0
+  LIBRARY_CLASS  = DebugLib
+
+[Sources]
+  FbDebugLib.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  BaseLib
