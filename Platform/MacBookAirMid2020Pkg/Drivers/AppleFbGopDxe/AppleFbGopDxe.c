@@ -390,7 +390,7 @@ AppleFbGopEntry (
       volatile UINT32 *Fb = (volatile UINT32 *)(UINTN)APPLE_FB_BASE;
       UINTN R, C;
       Cs = gBS->ConnectController (Handle, NULL, NULL, TRUE);
-      TextOutputString (&mTextOut, EFI_ERROR (Cs) ? L"CONSOLE FAIL\n" : L"CONSOLE OK\n");
+      TextOutputString (&mTextOut, EFI_ERROR (Status) ? L"TEXTOUT FAIL\n" : L"CONSOLE OK\n");
       TextOutputString (&mTextOut, L"PROJECT MU\n");
       TextOutputString (&mTextOut, L"GOPTX\n");
       /* blue band = console connect OK, red band = failed (status encoded) */
