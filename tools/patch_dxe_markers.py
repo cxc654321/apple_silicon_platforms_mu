@@ -189,6 +189,20 @@ def main():
         else:
             print('WARN: dispatcher call site not found')
 
+        disp = os.path.join(root, 'MdeModulePkg/Core/Dxe/Dispatcher/Dispatcher.c')
+        if os.path.exists(disp):
+            dt = open(disp, 'r', errors='ignore').read()
+            i2 = dt.find('Entry = DriverEntry->EntryPoint;')
+            if i2 >= 0:
+                e2 = dt.find('\n', i2)
+                dt = dt[:e2 + 1] + '    DEBUG ((DEBUG_INFO, "DISPATCHING DRIVER"));\n' + dt[e2 + 1:]
+                open(disp, 'w').write(dt)
+                print('patched Dispatcher.c: driver announcement')
+            else:
+                print('WARN: dispatcher entry anchor not found')
+        else:
+            print('WARN: Dispatcher.c not found')
+
     bds = os.path.join(root, 'MdeModulePkg/Universal/BdsDxe/BdsEntry.c')
     if os.path.exists(bds):
         text = open(bds, 'r', errors='ignore').read()
