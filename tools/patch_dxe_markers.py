@@ -146,6 +146,20 @@ def main():
         else:
             print('WARN: no body brace for %s in %s' % (name, path))
             rc = 1
+    bds = os.path.join(root, 'MdeModulePkg/Universal/BdsDxe/BdsEntry.c')
+    if os.path.exists(bds):
+        text = open(bds, 'r', errors='ignore').read()
+        idx = text.find('BdsEntry (')
+        if idx >= 0:
+            brace = text.find('{', idx)
+            text = text[:brace + 1] + '\n  DEBUG ((DEBUG_INFO, "BDS ENTRY REACHED"));\n' + text[brace + 1:]
+            open(bds, 'w').write(text)
+            print('patched BdsEntry with a DEBUG line')
+        else:
+            print('WARN: BdsEntry not found')
+    else:
+        print('WARN: BdsEntry.c not found')
+
     dxe = os.path.join(root, 'MdeModulePkg/Core/Dxe/DxeMain/DxeMain.c')
     if os.path.exists(dxe):
         for needle, x, color in [('CoreInitializeDispatcher (', 2040, '0x0000FFFF'),
