@@ -61,6 +61,20 @@ def insert_marker(path, offset, x, color):
     return True
 
 
+def insert_after_call(path, needle, x, color):
+    """Append a marker statement right after the first line containing needle."""
+    text = open(path, 'r', errors='ignore').read()
+    idx = text.find(needle)
+    if idx < 0:
+        return False
+    eol = text.find('\n', idx)
+    if eol < 0:
+        return False
+    text = text[:eol + 1] + marker_code(x, color) + text[eol + 1:]
+    open(path, 'w').write(text)
+    return True
+
+
 def main():
     root = sys.argv[1] if len(sys.argv) > 1 else 'MU_BASECORE'
     targets = [('LoadDxeCoreFromFv', 1480, '0x0000FF00'),
@@ -80,6 +94,17 @@ def main():
         else:
             print('WARN: no body brace for %s in %s' % (name, path))
             rc = 1
+    dxe = os.path.join(root, 'MdeModulePkg/Core/Dxe/DxeMain/DxeMain.c')
+    if os.path.exists(dxe):
+        for needle, x, color in [('CoreInitializeDispatcher (', 2040, '0x0000FFFF'),
+                                 ('CoreInitializeConsole (', 2320, '0x00FFFFFF')]:
+            if insert_after_call(dxe, needle, x, color):
+                print('patched %s in DxeMain.c (x=%d)' % (needle.strip(), x))
+            else:
+                print('WARN: call %r not found in DxeMain.c' % needle)
+    else:
+        print('WARN: DxeMain.c not found at %s' % dxe)
+
     return rc
 
 
