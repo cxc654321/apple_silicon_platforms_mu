@@ -592,6 +592,7 @@
 !else
   AppleSiliconPkg/Drivers/AppleAicDxe/AppleAicDxe.inf
 !endif
+  AppleSiliconPkg/Drivers/AppleNANDStorageDxe/AppleNANDStorageDxe.inf
   MdeModulePkg/Core/RuntimeDxe/RuntimeDxe.inf
   AppleSiliconPkg/Drivers/SimpleFbDxe/SimpleFbDxe.inf
   MdeModulePkg/Universal/WatchdogTimerDxe/WatchdogTimer.inf

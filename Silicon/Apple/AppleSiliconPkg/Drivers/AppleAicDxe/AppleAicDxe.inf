@@ -7,6 +7,7 @@
 #  Copyright (c) 2008 - 2010, Apple Inc. All rights reserved.<BR>
 #  Copyright (c) 2012 - 2017, ARM Ltd. All rights reserved.<BR>
 #
+#  Copyright (c) 2026 Aurora Silicon
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
 #**/
@@ -47,6 +48,7 @@
   AppleDTLib
   UefiLib
   ArmGenericTimerCounterLib
+  PcdLib
 
 [Protocols]
   gHardwareInterruptProtocolGuid  ## PRODUCES
@@ -54,6 +56,7 @@
   gEfiCpuArchProtocolGuid         ## CONSUMES ## NOTIFY
 
 [Pcd.common]
+  gAppleSiliconPkgTokenSpaceGuid.PcdAppleSocIdentifier
 
 [Depex]
   TRUE

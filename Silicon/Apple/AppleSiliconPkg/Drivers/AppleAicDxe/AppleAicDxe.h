@@ -8,6 +8,7 @@
  * @date 2022-09-24
  * 
  * @copyright Copyright (c) amarioguy (Arminder Singh) 2022.
+ * Copyright (c) 2026 Aurora Silicon
  * 
  */
 
@@ -54,6 +55,11 @@ EFI_STATUS AppleAicV1DxeInit(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Sys
 //AICv2 API
 
 EFI_STATUS AppleAicV2DxeInit(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable, APPLE_AIC_VERSION aicVersion);
+
+VOID
+AppleAicV2PrepareTimerInterrupt (
+  IN HARDWARE_INTERRUPT_SOURCE Source
+  );
 
 
 #endif //APPLE_AIC_DXE_H
