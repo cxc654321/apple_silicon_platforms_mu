@@ -42,7 +42,17 @@
   gAppleSiliconPkgTokenSpaceGuid.PcdSmbiosSystemModel|"MacBook Air (Mid 2020)"
   gAppleSiliconPkgTokenSpaceGuid.PcdSmbiosSystemModelNumber|"MacBookAir10,1"
   gAppleSiliconPkgTokenSpaceGuid.PcdSmbiosSystemSku|"MacBook Air (MacBookAir10,1)"
-  
+
+  #
+  # ANS/NVMe bring-up ladder, step 1 of 2: let AppleNANDStorageDxe run the full
+  # DXE bring-up (PMGR reset, RTKit boot, SART programming) but keep
+  # PcdAppleAnsPublishBlockIo FALSE so no Block I/O is published to BDS and no
+  # boot option appears yet. Step 2 flips PublishBlockIo once the serial log
+  # shows this pass completing.
+  #
+  gAppleSiliconPkgTokenSpaceGuid.PcdAppleAnsPerformDxeBringUp|TRUE
+
+
 
 [Components.common]
   Platform/MacBookAirMid2020Pkg/Drivers/AppleFbGopDxe/AppleFbGopDxe.inf
