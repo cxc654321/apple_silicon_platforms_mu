@@ -7,6 +7,7 @@
 **/
 
 #include <Base.h>
+#include <Library/BaseLib.h>
 #include <Library/DebugLib.h>
 
 #define FB_BASE    0x9E2624000ULL
@@ -137,13 +138,12 @@ VOID
 EFIAPI
 DebugAssert (
   IN CONST CHAR8  *FileName,
-  IN CONST CHAR8  *Description,
   IN UINTN        LineNumber,
-  IN CONST CHAR8  *PrintString
+  IN CONST CHAR8  *Description
   )
 {
   DebugPrint (0, "ASSERT");
-  DebugPrint (0, PrintString);
+  DebugPrint (0, Description);
   CpuDeadLoop ();
 }
 
