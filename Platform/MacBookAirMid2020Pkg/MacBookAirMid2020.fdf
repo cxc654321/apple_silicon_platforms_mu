@@ -246,8 +246,6 @@ READ_LOCK_STATUS   = TRUE
 #   SECTION UI = "Embedded RAMDisk"  
 # }
   
-  INF Platform/MacBookAirMid2020Pkg/Drivers/AppleFbGopDxe/AppleFbGopDxe.inf
-
 !include AppleSiliconPkg/FrontpageFdf.inc
 
 [FV.FVMAIN_COMPACT]
