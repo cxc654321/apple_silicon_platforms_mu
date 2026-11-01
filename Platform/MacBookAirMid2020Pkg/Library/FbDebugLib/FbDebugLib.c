@@ -145,7 +145,14 @@ DebugPrint (
     PutChar (*P);
   }
   VA_END (Marker);
-  PutChar ('\n');
+
+  /* Always start the next message on a fresh row: without this, messages that
+   * end without a newline pile up on top of each other. */
+  mCol = 0;
+  mRow++;
+  if (mRow > 34) {
+    mRow = 0;
+  }
 }
 
 VOID
