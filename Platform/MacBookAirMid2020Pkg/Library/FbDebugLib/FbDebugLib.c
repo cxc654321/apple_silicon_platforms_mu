@@ -15,6 +15,7 @@
 
 STATIC UINTN  mCol = 0;
 STATIC UINTN  mRow = 0;
+STATIC UINT32 mSpinLock = 0;   /* serialises DEBUG output across CPUs */
 
 STATIC CONST UINT8  mFont[][7] = {
   /* A B C D E F G H I J K L M N O P Q R S T U V W X Y Z */
@@ -121,6 +122,12 @@ DebugPrint (
     return;
   }
 
+  /* Take a simple spin lock: several CPUs can print concurrently during
+   * dispatch, and interleaved writes corrupt the first line on screen. */
+  while (__sync_lock_test_and_set (&mSpinLock, 1) != 0) {
+    CpuPause ();
+  }
+
   VA_START (Marker, Format);
   for (P = Format; *P; P++) {
     /* Minimal formatting: only %a (ASCII string) and %% are handled, which is
@@ -153,6 +160,8 @@ DebugPrint (
   if (mRow > 34) {
     mRow = 0;
   }
+
+  __sync_lock_release (&mSpinLock);
 }
 
 VOID
