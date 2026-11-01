@@ -146,6 +146,19 @@ def main():
         else:
             print('WARN: no body brace for %s in %s' % (name, path))
             rc = 1
+    # Force BdsDxe to be dispatchable: if a Depex dependency is silently
+    # unsatisfied the dispatcher never runs BDS and nothing explains why.
+    inf = os.path.join(root, 'MdeModulePkg/Universal/BdsDxe/BdsDxe.inf')
+    if os.path.exists(inf):
+        t = open(inf, 'r', errors='ignore').read()
+        m = re.search(r'\[Depex\][^\[]*', t)
+        if m:
+            t = t[:m.start()] + '[Depex]\n  TRUE\n\n' + t[m.end():]
+            open(inf, 'w').write(t)
+            print('patched BdsDxe.inf Depex to TRUE')
+    else:
+        print('WARN: BdsDxe.inf not found')
+
     bds = os.path.join(root, 'MdeModulePkg/Universal/BdsDxe/BdsEntry.c')
     if os.path.exists(bds):
         text = open(bds, 'r', errors='ignore').read()
