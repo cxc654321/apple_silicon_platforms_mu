@@ -21,6 +21,61 @@
 #define APPLE_FB_STRIDE  2560
 #define APPLE_FB_BPP     32
 
+/* 5x7 glyphs for the letters we need on screen (no console available yet). */
+STATIC CONST UINT8 mGlyph[][7] = {
+  {0x0E,0x11,0x11,0x11,0x11,0x11,0x0E}, /* O */
+  {0x0E,0x11,0x11,0x1F,0x11,0x11,0x11}, /* A */
+  {0x1F,0x10,0x10,0x1E,0x10,0x10,0x10}, /* F */
+  {0x1F,0x10,0x10,0x1E,0x10,0x10,0x1F}, /* E */
+  {0x1F,0x11,0x11,0x1F,0x11,0x11,0x1F}, /* B */
+  {0x0E,0x11,0x11,0x1E,0x10,0x10,0x10}, /* P */
+  {0x0E,0x11,0x11,0x11,0x11,0x11,0x0E}, /* C */
+  {0x1F,0x04,0x04,0x04,0x04,0x04,0x1F}, /* K */
+  {0x0E,0x11,0x10,0x0E,0x01,0x11,0x0E}, /* S */
+  {0x1F,0x04,0x04,0x04,0x04,0x04,0x04}, /* T */
+  {0x11,0x11,0x11,0x0A,0x0A,0x04,0x04}, /* X */
+};
+
+STATIC
+VOID
+DrawText (
+  IN UINTN        X,
+  IN UINTN        Y,
+  IN CONST CHAR8  *S
+  )
+{
+  volatile UINT32  *Fb;
+  CONST CHAR8      *Set = "OAFEBCPKSTX";
+  UINTN            R, C, Dy, Dx;
+
+  Fb = (volatile UINT32 *)(UINTN)APPLE_FB_BASE;
+  for (; *S; S++, X += 24) {
+    CONST CHAR8 *Q = NULL;
+    CONST CHAR8 *T;
+    for (T = Set; *T; T++) {
+      if (*T == *S) {
+        Q = T;
+      }
+    }
+    if (Q == NULL) {
+      continue;
+    }
+    for (R = 0; R < 7; R++) {
+      UINT8 Bits = mGlyph[Q - Set][R];
+      for (C = 0; C < 5; C++) {
+        if ((Bits & (0x10u >> C)) == 0) {
+          continue;
+        }
+        for (Dy = 0; Dy < 4; Dy++) {
+          for (Dx = 0; Dx < 4; Dx++) {
+            Fb[(Y + R * 4 + Dy) * APPLE_FB_STRIDE + (X + C * 4 + Dx)] = 0x00FFFFFFu;
+          }
+        }
+      }
+    }
+  }
+}
+
 STATIC EFI_GRAPHICS_OUTPUT_MODE_INFORMATION  mModeInfo;
 STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE     mMode;
 STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL          mGop;
@@ -169,6 +224,8 @@ AppleFbGopEntry (
       volatile UINT32 *Fb = (volatile UINT32 *)(UINTN)APPLE_FB_BASE;
       UINTN R, C;
       Cs = gBS->ConnectController (Handle, NULL, NULL, TRUE);
+      DrawText (80, 640, EFI_ERROR (Cs) ? "FAIL" : "OKBP");
+      DrawText (80, 720, "GOPTX");
       /* blue band = console connect OK, red band = failed (status encoded) */
       for (R = 500; R < 600; R++) {
         for (C = 0; C < 2400; C++) {
