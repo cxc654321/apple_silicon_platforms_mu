@@ -102,7 +102,11 @@ def insert_marker(path, offset, x, color):
     text = text[:brace + 1] + '\n' + marker_code(x, color) + text[brace + 1:]
     # inject the tiny font helper once per file, then a readable label
     if 'MuText' not in text:
-        text = text.replace(marker_code(x, color), FONT_C + marker_code(x, color), 1)
+        # font helpers must live at file scope: put them after the last #include
+        pos = 0
+        for m in re.finditer(r'^#include[^\n]*\n', text, re.M):
+            pos = m.end()
+        text = text[:pos] + FONT_C + text[pos:]
     text = text.replace(marker_code(x, color),
                         marker_code(x, color) + '  MuText(' + str(x) + ', 220, "' + (LABELS.get(x, '')) + '");\n', 1)
     open(path, 'w').write(text)
@@ -145,7 +149,7 @@ def main():
     dxe = os.path.join(root, 'MdeModulePkg/Core/Dxe/DxeMain/DxeMain.c')
     if os.path.exists(dxe):
         for needle, x, color in [('CoreInitializeDispatcher (', 2040, '0x0000FFFF'),
-                                 ('CoreInitializeConsole (', 2320, '0x00FFFFFF')]:
+                                 ('CoreInitializeDispatcher (', 2320, '0x00FFFFFF')]:
             if insert_after_call(dxe, needle, x, color):
                 print('patched %s in DxeMain.c (x=%d)' % (needle.strip(), x))
             else:
