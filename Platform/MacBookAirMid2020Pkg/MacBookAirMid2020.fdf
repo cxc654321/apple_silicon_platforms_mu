@@ -85,6 +85,7 @@ FV = FVMAIN_COMPACT
 ################################################################################
 
 [FV.FvMain]
+  INF Platform/MacBookAirMid2020Pkg/Drivers/AppleFbGopDxe/AppleFbGopDxe.inf
 BlockSize          = 0x40
 FvAlignment        = 8         # FV alignment and FV attributes setting.
 ERASE_POLARITY     = 1

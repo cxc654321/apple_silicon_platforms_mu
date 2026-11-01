@@ -1,0 +1,29 @@
+## @file
+#  Minimal GOP that republishes m1n1's linear framebuffer.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001A
+  BASE_NAME                      = AppleFbGopDxe
+  FILE_GUID                      = 7c1e4d2a-9b83-4f60-8e35-2ad41b6c9f11
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = AppleFbGopEntry
+
+[Sources]
+  AppleFbGopDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+
+[LibraryClasses]
+  DebugLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid

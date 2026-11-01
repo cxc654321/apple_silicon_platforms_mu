@@ -45,6 +45,7 @@
   
 
 [Components.common]
+  Platform/MacBookAirMid2020Pkg/Drivers/AppleFbGopDxe/AppleFbGopDxe.inf
 
   MacBookAirMid2020Pkg/AcpiTables/DeviceAcpiTables.inf
 
