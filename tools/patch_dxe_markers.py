@@ -175,6 +175,20 @@ def main():
         else:
             print('WARN: CoreInitializeDispatcher call site not found')
 
+    dxemain = os.path.join(root, 'MdeModulePkg/Core/Dxe/DxeMain/DxeMain.c')
+    if os.path.exists(dxemain):
+        t = open(dxemain, 'r', errors='ignore').read()
+        anchor = 'Status = CoreInitializeDispatcher ();'
+        idx = t.find(anchor)
+        if idx >= 0:
+            eol = t.find('\n', idx)
+            ins = '\n  DEBUG ((DEBUG_INFO, "DISPATCHER RETURNED"));\n'
+            t = t[:eol + 1] + ins + t[eol + 1:]
+            open(dxemain, 'w').write(t)
+            print('patched DxeMain: dispatcher return marker')
+        else:
+            print('WARN: dispatcher call site not found')
+
     bds = os.path.join(root, 'MdeModulePkg/Universal/BdsDxe/BdsEntry.c')
     if os.path.exists(bds):
         text = open(bds, 'r', errors='ignore').read()
