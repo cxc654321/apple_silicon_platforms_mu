@@ -11,8 +11,16 @@
   gAppleSiliconPkgTokenSpaceGuid = { 0xdac05d5e, 0x6b59, 0x4731, { 0x83, 0xf4, 0xfb, 0x40, 0x05, 0xb5, 0xcc, 0xdc } }
   gAppleSiliconPkgEmbeddedRamdiskGuid = { 0x650b7cd0, 0x94f8, 0x46cc, { 0x88, 0xde, 0x8c, 0x19, 0x9d, 0x41, 0xed, 0xa3} }
   gAppleSiliconPkgEmbeddedUsbFirmwareGuid = { 0xd730ab59, 0x670e, 0x4a92, { 0x84, 0x75, 0xb3, 0x19, 0x39, 0xd0, 0x5b, 0xb4 } }
+  #
+  # Runtime location of the firmware image, published by PrePi for later phases.
+  #
+  gAppleSiliconPkgFdInfoHobGuid = { 0x9a1d4e6b, 0x2f7c, 0x4a88, { 0xbc, 0x31, 0x5e, 0x0a, 0x77, 0xd2, 0x64, 0x19} }
   
 [Protocols]
+  #
+  # Private read-only view of AppleANS' EFI_BLOCK_IO_PROTOCOL implementation.
+  #
+  gAppleAnsDiagnosticBlockIoProtocolGuid = { 0x51ae8c79, 0x98cc, 0x4cda, { 0x8a, 0xdc, 0x85, 0x1d, 0x89, 0xb3, 0x82, 0xfe } }
 
 [PcdsFixedAtBuild.common]
   gAppleSiliconPkgTokenSpaceGuid.PcdAppleSocIdentifier|0|UINT32|0x0000389e
@@ -65,6 +73,23 @@
   gAppleSiliconPkgTokenSpaceGuid.PcdDeviceAcpiTableStorageFile|{ 0x2c, 0x73, 0xf4, 0x3f, 0x11, 0x94, 0x10, 0x4e, 0xa1, 0x0c, 0x8b, 0x39, 0xdf, 0x28, 0x2e, 0x83 }|VOID*|0x00004500
   gAppleSiliconPkgTokenSpaceGuid.PcdSocAcpiTableStorageFile|{ 0x86, 0x0d, 0x43, 0xd1, 0xa4, 0x24, 0x2f, 0x4c, 0x8f, 0x22, 0xd2, 0x43, 0x76, 0xe2, 0xe8, 0x88 }|VOID*|0x00004501
   gAppleSiliconPkgTokenSpaceGuid.PcdGenericAcpiTableStorageFile|{ 0xf6, 0xcc, 0x7b, 0xa5, 0xa5, 0x0c, 0x9a, 0x43, 0xb8, 0xa6, 0xeb, 0x40, 0xff, 0x03, 0x58, 0x27 }|VOID*|0x00004502
+
+  #
+  # Apple ANS (NAND storage) bring-up knobs. All off/zero by default: the
+  # driver compiles and dispatches but touches no hardware until a platform
+  # turns these on.
+  #
+  gAppleSiliconPkgTokenSpaceGuid.PcdAppleAnsPublishBlockIo|FALSE|BOOLEAN|0x0000471C
+  gAppleSiliconPkgTokenSpaceGuid.PcdAppleAnsPerformDxeBringUp|FALSE|BOOLEAN|0x00004721
+  gAppleSiliconPkgTokenSpaceGuid.PcdAppleAnsPreserveForOs|FALSE|BOOLEAN|0x00004722
+  #
+  # Hardware-confirmed expectations for the four pmgr_east power-state words,
+  # used only as a corroboration check against the live-ADT resolution.
+  #
+  gAppleSiliconPkgTokenSpaceGuid.PcdAppleAnsPmgrResetBase|0|UINT64|0x0000471D
+  gAppleSiliconPkgTokenSpaceGuid.PcdAppleAnsPmgrApcieStBase|0|UINT64|0x0000471E
+  gAppleSiliconPkgTokenSpaceGuid.PcdAppleAnsPmgrApcieStSysBase|0|UINT64|0x0000471F
+  gAppleSiliconPkgTokenSpaceGuid.PcdAppleAnsPmgrApcieSt1SysBase|0|UINT64|0x00004720
 
   #FDT pointer
   gAppleSiliconPkgTokenSpaceGuid.PcdAdtPointer|0|UINT64|0x00003901

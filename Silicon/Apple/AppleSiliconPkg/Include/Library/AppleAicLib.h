@@ -11,6 +11,7 @@
  * 
  * @copyright Copyright (c) amarioguy (Arminder Singh), 2022.
  * 
+ * Copyright (c) 2026 Aurora Silicon
  * SPDX-License-Identifier: BSD-2-Clause-Patent
  * 
  */
@@ -76,6 +77,11 @@ extern AIC_INFO_STRUCT *AicInfoStruct;
 //Interrupt number
 #define AIC_EVENT_IRQ_NUM GENMASK(15, 0)
 
+// m1n1 native-AIC timer reflection ABI. EL2 reserves two blocks at the top
+// of the implemented per-die IRQ space, one CNTP and one CNTV software IRQ per
+// possible CPU. Keep this in sync with MAX_CPUS and HV_TIMER_*_SWIRQ in m1n1.
+#define AIC_TIMER_REFLECT_CPU_SLOTS  24
+
 
 //AICv1 bitmasks
 
@@ -89,6 +95,22 @@ extern AIC_INFO_STRUCT *AicInfoStruct;
 #define AIC_V2_CONFIG 0x0014
 #define AIC_V2_IRQ_CFG_REG 0x2000
 
+//AICv3 Registers (the constant offsets)
+//
+//AICv3 (t8122/M3, t6030, A17) is functionally AICv2 but relocates the
+//external-interrupt (IRQ_CFG) block to 0x10000. The global INFO/CONFIG block
+//and CONFIG.ENABLE bit (0x14, BIT0) are shared with AICv2. The IRQ_CFG base and
+//the cap0/maxnumirq capability offsets are ADT-described and may move on future
+//SoCs, so the driver reads extint-baseaddress / cap0-offset / maxnumirq-offset
+//from the ADT with these as the t8122/t6030 defaults. Matches Asahi
+//irq-apple-aic.c (AIC3_IRQ_CFG) and m1n1 aic23_init().
+#define AIC_V3_IRQ_CFG_REG 0x10000
+
+//Full AICv1 MMIO register window size (m1n1 AIC_REG_SIZE). AICv1's event
+//register (base+0x2004) sits below its per-die banks (which end near 0x4200),
+//so the v2 "event page" size formula would undersize the v1 region.
+#define AIC_REG_SIZE 0x8000
+
 
 //AICv2 bitmasks and bitfield definitions
 
@@ -99,8 +121,8 @@ extern AIC_INFO_STRUCT *AicInfoStruct;
 
 // IRQ Mask macros
 
-#define AIC_MASK_REG(num) (4 * ((num) >> 5))
-#define AIC_MASK_BIT(num) BIT(num) & GENMASK(4, 0)
+#define AIC_MASK_REG(num)  (4 * ((num) >> 5))
+#define AIC_MASK_BIT(num)  BIT ((num) & 0x1F)
 
 /* Function prototypes */
 
@@ -211,6 +233,21 @@ UINTN EFIAPI AppleAicV2ReadUncorePmcControlRegister(VOID);
 VOID EFIAPI AppleAicV2WriteUncorePmcControlRegister(IN UINTN Value);
 
 UINTN EFIAPI AppleAicV2ReadUncorePmcStatusRegister(VOID);
+
+//AICv3 specific
+
+/**
+ * @brief Publish the ADT-discovered AICv3 capability-register offsets.
+ *
+ * AICv3 stores the cap0 (NumIrqs/LastDie) and maxnumirq (MaxIrqs/MaxDie)
+ * register offsets in the ADT rather than at the fixed AICv2 positions. The DXE
+ * reads them and calls this before AppleAicGetNumInterrupts/GetMaxInterrupts so
+ * those helpers read the correct MMIO offsets on AICv3. No effect on v1/v2.
+ *
+ * @param Cap0Offset - byte offset of the cap0 (INFO1) register from AIC base.
+ * @param MaxNumIrqOffset - byte offset of the maxnumirq (INFO3) register.
+ */
+VOID EFIAPI AppleAicV3SetDynamicOffsets(IN UINT32 Cap0Offset, IN UINT32 MaxNumIrqOffset);
 
 /**
  * Calculate the AIC register offsets on the platform
