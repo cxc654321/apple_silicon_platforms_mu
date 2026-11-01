@@ -29,7 +29,7 @@ STATIC
 EFI_STATUS
 EFIAPI
 GopQueryMode (
-  IN  EFI_GRAPHICS_OUTPUT_PROTOCOL          *This,
+  IN  EFI_GRAPHICS_OUTPUT_PROTOCOL          *This  OPTIONAL,
   IN  UINT32                                ModeNumber,
   OUT UINTN                                 *SizeOfInfo,
   OUT EFI_GRAPHICS_OUTPUT_MODE_INFORMATION   **Info
@@ -52,7 +52,7 @@ STATIC
 EFI_STATUS
 EFIAPI
 GopSetMode (
-  IN EFI_GRAPHICS_OUTPUT_PROTOCOL  *This,
+  IN EFI_GRAPHICS_OUTPUT_PROTOCOL  *This  OPTIONAL,
   IN UINT32                        ModeNumber
   )
 {
@@ -68,7 +68,7 @@ STATIC
 EFI_STATUS
 EFIAPI
 GopBlt (
-  IN  EFI_GRAPHICS_OUTPUT_PROTOCOL       *This,
+  IN  EFI_GRAPHICS_OUTPUT_PROTOCOL       *This  OPTIONAL,
   IN  EFI_GRAPHICS_OUTPUT_BLT_PIXEL      *BltBuffer,
   IN  EFI_GRAPHICS_OUTPUT_BLT_OPERATION  BltOperation,
   IN  UINTN                              SourceX,
