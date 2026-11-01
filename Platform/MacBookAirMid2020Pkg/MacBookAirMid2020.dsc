@@ -38,11 +38,6 @@
   GCC:*_*_AARCH64_CC_FLAGS = -DSILICON_PLATFORM=8103
   *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES -D HAS_MEMCPY_INTRINSICS
 
-[LibraryClasses.common]
-  # Route DEBUG() to the framebuffer: M1 Air has no serial port, otherwise all
-  # DXE core logging is lost and failures are invisible.
-  DebugLib|Platform/MacBookAirMid2020Pkg/Library/FbDebugLib/FbDebugLib.inf
-
 [PcdsFixedAtBuild.common]
   gAppleSiliconPkgTokenSpaceGuid.PcdSmbiosSystemModel|"MacBook Air (Mid 2020)"
   gAppleSiliconPkgTokenSpaceGuid.PcdSmbiosSystemModelNumber|"MacBookAir10,1"

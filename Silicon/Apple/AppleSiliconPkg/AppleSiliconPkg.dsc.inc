@@ -498,7 +498,7 @@
   #
   ArmMonitorLib|ArmPkg/Library/ArmMonitorLib/ArmMonitorLib.inf
 !if $(TARGET) != RELEASE
-  DebugLib|MdePkg/Library/DxeRuntimeDebugLibSerialPort/DxeRuntimeDebugLibSerialPort.inf
+  DebugLib|Platform/MacBookAirMid2020Pkg/Library/FbDebugLib/FbDebugLib.inf
 !endif
   ExtractGuidedSectionLib|MdePkg/Library/DxeExtractGuidedSectionLib/DxeExtractGuidedSectionLib.inf
 
