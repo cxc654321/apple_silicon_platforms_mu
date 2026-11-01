@@ -135,6 +135,17 @@ AppleFbGopEntry (
   mMode.FrameBufferBase  = APPLE_FB_BASE;
   mMode.FrameBufferSize  = (UINTN)APPLE_FB_STRIDE * APPLE_FB_HEIGHT * (APPLE_FB_BPP / 8);
 
+  /* prove the driver actually loaded: paint a solid band at y=360..470 */
+  {
+    volatile UINT32 *Fb = (volatile UINT32 *)(UINTN)APPLE_FB_BASE;
+    UINTN R, C;
+    for (R = 360; R < 470; R++) {
+      for (C = 0; C < 2400; C++) {
+        Fb[R * APPLE_FB_STRIDE + C] = 0x0000FF00u; /* GOP LOADED */
+      }
+    }
+  }
+
   mGop.QueryMode  = GopQueryMode;
   mGop.SetMode    = GopSetMode;
   mGop.Blt        = GopBlt;
