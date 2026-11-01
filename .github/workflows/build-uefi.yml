@@ -132,6 +132,11 @@ jobs:
             echo "::endgroup::"
           done
 
+      - name: 提取编译诊断
+        if: failure()
+        run: |
+          grep -hE "error:|error F[0-9]+|undefined symbol" Build/*/DEBUG_*/BUILD.LOG 2>/dev/null | head -30 || true
+
       - name: 注入 DXE 埋点（仅调试）
         run: |
           ls -d MU_BASECORE >/dev/null 2>&1 || { echo "MU_BASECORE 缺失，跳过埋点"; exit 0; }

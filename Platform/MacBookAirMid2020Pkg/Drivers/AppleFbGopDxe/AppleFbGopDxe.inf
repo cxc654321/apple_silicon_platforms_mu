@@ -20,6 +20,8 @@
   MdeModulePkg/MdeModulePkg.dec
 
 [LibraryClasses]
+  BaseLib
+  BaseMemoryLib
   DebugLib
   MemoryAllocationLib
   UefiBootServicesTableLib
