@@ -167,6 +167,199 @@ GopBlt (
   return EFI_SUCCESS;
 }
 
+STATIC EFI_SIMPLE_TEXT_OUTPUT_MODE  mTextMode = {
+  0, 0, 0, 0, EFI_LIGHTGRAY, EFI_BLACK
+};
+STATIC EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  mTextOut;
+
+STATIC
+EFI_STATUS
+EFIAPI
+TextReset (
+  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *This,
+  IN BOOLEAN                          ExtendedVerification
+  )
+{
+  mTextMode.CursorColumn = 0;
+  mTextMode.CursorRow    = 0;
+  return EFI_SUCCESS;
+}
+
+STATIC
+VOID
+DrawGlyph (
+  IN CHAR16  Ch,
+  IN UINTN   X,
+  IN UINTN   Y
+  )
+{
+  volatile UINT32  *Fb;
+  CONST CHAR8      *Set = " OAFEBCPKSTX";
+  CONST CHAR8      *Q   = NULL;
+  CONST CHAR8      *T;
+  UINTN            R, C, Dy, Dx;
+  CHAR8            A = (CHAR8)Ch;
+
+  Fb = (volatile UINT32 *)(UINTN)APPLE_FB_BASE;
+  if (A >= 'a' && A <= 'z') {
+    A = (CHAR8)(A - 32);
+  }
+  for (T = Set; *T; T++) {
+    if (*T == A) {
+      Q = T;
+    }
+  }
+  if (Q == NULL) {
+    return;
+  }
+  for (R = 0; R < 7; R++) {
+    UINT8 Bits = (Q == Set) ? 0 : mGlyph[Q - Set - 1][R];
+    for (C = 0; C < 5; C++) {
+      if ((Bits & (0x10u >> C)) == 0) {
+        continue;
+      }
+      for (Dy = 0; Dy < 3; Dy++) {
+        for (Dx = 0; Dx < 3; Dx++) {
+          Fb[(Y + R * 3 + Dy) * APPLE_FB_STRIDE + (X + C * 3 + Dx)] = 0x00FFFFFFu;
+        }
+      }
+    }
+  }
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+TextOutputString (
+  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *This,
+  IN CHAR16                           *String
+  )
+{
+  CONST UINTN  Cw = 20;
+  CONST UINTN  Ch = 24;
+
+  if (String == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+  for (; *String; String++) {
+    if (*String == L'\n') {
+      mTextMode.CursorColumn = 0;
+      mTextMode.CursorRow++;
+      continue;
+    }
+    if (*String == L'\r') {
+      mTextMode.CursorColumn = 0;
+      continue;
+    }
+    DrawGlyph (*String, 40 + mTextMode.CursorColumn * Cw, 640 + mTextMode.CursorRow * Ch);
+    mTextMode.CursorColumn++;
+    if (mTextMode.CursorColumn >= 120) {
+      mTextMode.CursorColumn = 0;
+      mTextMode.CursorRow++;
+    }
+  }
+  return EFI_SUCCESS;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+TextTestString (
+  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *This,
+  IN CHAR16                           *String
+  )
+{
+  return EFI_SUCCESS;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+TextQueryMode (
+  IN  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *This,
+  IN  UINTN                            ModeNumber,
+  OUT UINTN                            *Columns,
+  OUT UINTN                            *Rows
+  )
+{
+  if (ModeNumber != 0) {
+    return EFI_UNSUPPORTED;
+  }
+  *Columns = 120;
+  *Rows    = 40;
+  return EFI_SUCCESS;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+TextSetMode (
+  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *This,
+  IN UINTN                            ModeNumber
+  )
+{
+  return (ModeNumber == 0) ? EFI_SUCCESS : EFI_UNSUPPORTED;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+TextSetAttribute (
+  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *This,
+  IN UINTN                            Attribute
+  )
+{
+  mTextMode.Attribute = (INT32)Attribute;
+  return EFI_SUCCESS;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+TextClearScreen (
+  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *This
+  )
+{
+  volatile UINT32  *Fb;
+  UINTN            R, C;
+
+  Fb = (volatile UINT32 *)(UINTN)APPLE_FB_BASE;
+  for (R = 620; R < APPLE_FB_HEIGHT; R++) {
+    for (C = 0; C < 2400; C++) {
+      Fb[R * APPLE_FB_STRIDE + C] = 0;
+    }
+  }
+  mTextMode.CursorColumn = 0;
+  mTextMode.CursorRow    = 0;
+  return EFI_SUCCESS;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+TextSetCursorPosition (
+  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *This,
+  IN UINTN                            Column,
+  IN UINTN                            Row
+  )
+{
+  mTextMode.CursorColumn = (INT32)Column;
+  mTextMode.CursorRow    = (INT32)Row;
+  return EFI_SUCCESS;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+TextEnableCursor (
+  IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *This,
+  IN BOOLEAN                          Visible
+  )
+{
+  mTextMode.CursorVisible = Visible;
+  return EFI_SUCCESS;
+}
+
 EFI_STATUS
 EFIAPI
 AppleFbGopEntry (
@@ -206,11 +399,24 @@ AppleFbGopEntry (
   mGop.Blt        = GopBlt;
   mGop.Mode       = &mMode;
 
+  mTextOut.Reset              = TextReset;
+  mTextOut.OutputString       = TextOutputString;
+  mTextOut.TestString         = TextTestString;
+  mTextOut.QueryMode          = TextQueryMode;
+  mTextOut.SetMode            = TextSetMode;
+  mTextOut.SetAttribute       = TextSetAttribute;
+  mTextOut.ClearScreen        = TextClearScreen;
+  mTextOut.SetCursorPosition  = TextSetCursorPosition;
+  mTextOut.EnableCursor       = TextEnableCursor;
+  mTextOut.Mode               = &mTextMode;
+
   Handle = NULL;
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Handle,
                   &gEfiGraphicsOutputProtocolGuid,
                   &mGop,
+                  &gEfiSimpleTextOutProtocolGuid,
+                  &mTextOut,
                   NULL
                   );
 
@@ -224,8 +430,9 @@ AppleFbGopEntry (
       volatile UINT32 *Fb = (volatile UINT32 *)(UINTN)APPLE_FB_BASE;
       UINTN R, C;
       Cs = gBS->ConnectController (Handle, NULL, NULL, TRUE);
-      DrawText (80, 640, EFI_ERROR (Cs) ? "FAIL" : "OKBP");
-      DrawText (80, 720, "GOPTX");
+      TextOutputString (&mTextOut, EFI_ERROR (Cs) ? L"CONSOLE FAIL\n" : L"CONSOLE OK\n");
+      TextOutputString (&mTextOut, L"PROJECT MU\n");
+      TextOutputString (&mTextOut, L"GOPTX\n");
       /* blue band = console connect OK, red band = failed (status encoded) */
       for (R = 500; R < 600; R++) {
         for (C = 0; C < 2400; C++) {
