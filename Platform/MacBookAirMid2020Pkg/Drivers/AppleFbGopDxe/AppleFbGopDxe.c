@@ -36,46 +36,6 @@ STATIC CONST UINT8 mGlyph[][7] = {
   {0x11,0x11,0x11,0x0A,0x0A,0x04,0x04}, /* X */
 };
 
-STATIC
-VOID
-DrawText (
-  IN UINTN        X,
-  IN UINTN        Y,
-  IN CONST CHAR8  *S
-  )
-{
-  volatile UINT32  *Fb;
-  CONST CHAR8      *Set = "OAFEBCPKSTX";
-  UINTN            R, C, Dy, Dx;
-
-  Fb = (volatile UINT32 *)(UINTN)APPLE_FB_BASE;
-  for (; *S; S++, X += 24) {
-    CONST CHAR8 *Q = NULL;
-    CONST CHAR8 *T;
-    for (T = Set; *T; T++) {
-      if (*T == *S) {
-        Q = T;
-      }
-    }
-    if (Q == NULL) {
-      continue;
-    }
-    for (R = 0; R < 7; R++) {
-      UINT8 Bits = mGlyph[Q - Set][R];
-      for (C = 0; C < 5; C++) {
-        if ((Bits & (0x10u >> C)) == 0) {
-          continue;
-        }
-        for (Dy = 0; Dy < 4; Dy++) {
-          for (Dx = 0; Dx < 4; Dx++) {
-            Fb[(Y + R * 4 + Dy) * APPLE_FB_STRIDE + (X + C * 4 + Dx)] = 0x00FFFFFFu;
-          }
-        }
-      }
-    }
-  }
-}
-
 STATIC EFI_GRAPHICS_OUTPUT_MODE_INFORMATION  mModeInfo;
 STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE     mMode;
 STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL          mGop;
