@@ -160,5 +160,11 @@ AppleFbGopEntry (
                   );
 
   DEBUG ((DEBUG_INFO, "AppleFbGop: framebuffer published, status=%r\n", Status));
+
+  if (!EFI_ERROR (Status)) {
+    /* BDS normally connects console drivers; we are running before BDS, so ask
+     * the core to bind GraphicsConsole/ConSplitter to this handle right now. */
+    gBS->ConnectController (Handle, NULL, NULL, TRUE);
+  }
   return Status;
 }
