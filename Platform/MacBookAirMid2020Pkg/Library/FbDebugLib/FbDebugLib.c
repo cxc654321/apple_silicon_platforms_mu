@@ -152,6 +152,15 @@ DebugAssertEnabled (
   return TRUE;
 }
 
+BOOLEAN
+EFIAPI
+DebugCodeEnabled (
+  VOID
+  )
+{
+  return TRUE;
+}
+
 VOID
 EFIAPI
 DebugAssert (
