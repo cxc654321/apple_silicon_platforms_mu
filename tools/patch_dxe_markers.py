@@ -159,6 +159,22 @@ def main():
     else:
         print('WARN: BdsDxe.inf not found')
 
+    # Report dispatcher completion and remaining load errors from DxeMain.
+    dxemain = os.path.join(root, 'MdeModulePkg/Core/Dxe/DxeMain/DxeMain.c')
+    if os.path.exists(dxemain):
+        t = open(dxemain, 'r', errors='ignore').read()
+        anchor = 'Status = CoreInitializeDispatcher ();'
+        idx = t.find(anchor)
+        if idx >= 0:
+            eol = t.find('\n', idx)
+            ins = ('\n  DEBUG ((DEBUG_INFO, "DISPATCHER RETURNED STATUS"));'
+                   '\n  DEBUG ((DEBUG_INFO, "BDS WILL BE LOADED NEXT"));\n')
+            t = t[:eol + 1] + ins + t[eol + 1:]
+            open(dxemain, 'w').write(t)
+            print('patched DxeMain: dispatcher return marker')
+        else:
+            print('WARN: CoreInitializeDispatcher call site not found')
+
     bds = os.path.join(root, 'MdeModulePkg/Universal/BdsDxe/BdsEntry.c')
     if os.path.exists(bds):
         text = open(bds, 'r', errors='ignore').read()
@@ -176,7 +192,7 @@ def main():
     dxe = os.path.join(root, 'MdeModulePkg/Core/Dxe/DxeMain/DxeMain.c')
     if os.path.exists(dxe):
         for needle, x, color in [('CoreInitializeDispatcher (', 2040, '0x0000FFFF'),
-                                 ('CoreInitializeDispatcher (', 2320, '0x00FFFFFF')]:
+                                 ('BdsEntry', 2320, '0x00FFFFFF')]:
             if insert_after_call(dxe, needle, x, color):
                 print('patched %s in DxeMain.c (x=%d)' % (needle.strip(), x))
             else:
