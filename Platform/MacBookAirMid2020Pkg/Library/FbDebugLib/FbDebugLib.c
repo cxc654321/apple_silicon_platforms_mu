@@ -114,13 +114,37 @@ DebugPrint (
   )
 {
   CONST CHAR8  *P;
+  VA_LIST      Marker;
+  CONST CHAR8  *Arg;
 
   if (Format == NULL) {
     return;
   }
+
+  VA_START (Marker, Format);
   for (P = Format; *P; P++) {
+    /* Minimal formatting: only %a (ASCII string) and %% are handled, which is
+     * enough to print driver names and file names during bring-up. */
+    if ((*P == '%') && (P[1] != 0)) {
+      if (P[1] == 'a') {
+        Arg = VA_ARG (Marker, CONST CHAR8 *);
+        if (Arg != NULL) {
+          while (*Arg) {
+            PutChar (*Arg++);
+          }
+        }
+        P++;
+        continue;
+      }
+      if (P[1] == '%') {
+        PutChar ('%');
+        P++;
+        continue;
+      }
+    }
     PutChar (*P);
   }
+  VA_END (Marker);
   PutChar ('\n');
 }
 
