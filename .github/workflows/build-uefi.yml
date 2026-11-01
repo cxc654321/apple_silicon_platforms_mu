@@ -136,6 +136,7 @@ jobs:
         run: |
           ls -d MU_BASECORE >/dev/null 2>&1 || { echo "MU_BASECORE 缺失，跳过埋点"; exit 0; }
           grep -rn "LoadDxeCoreFromFv\|^DxeMain" MU_BASECORE --include=*.c | head -10 || true
+          grep -n "CoreInitializeConsole\|ConSplitter\|BdsEntry\|CoreConnectConsole" MU_BASECORE/MdeModulePkg/Core/Dxe/DxeMain/DxeMain.c | head -20 || true
           python3 tools/patch_dxe_markers.py MU_BASECORE
           grep -rn "MuFb" MU_BASECORE --include=*.c | head -5 || true
 
