@@ -164,7 +164,18 @@ AppleFbGopEntry (
   if (!EFI_ERROR (Status)) {
     /* BDS normally connects console drivers; we are running before BDS, so ask
      * the core to bind GraphicsConsole/ConSplitter to this handle right now. */
-    gBS->ConnectController (Handle, NULL, NULL, TRUE);
+    {
+      EFI_STATUS Cs;
+      volatile UINT32 *Fb = (volatile UINT32 *)(UINTN)APPLE_FB_BASE;
+      UINTN R, C;
+      Cs = gBS->ConnectController (Handle, NULL, NULL, TRUE);
+      /* blue band = console connect OK, red band = failed (status encoded) */
+      for (R = 500; R < 600; R++) {
+        for (C = 0; C < 2400; C++) {
+          Fb[R * APPLE_FB_STRIDE + C] = EFI_ERROR (Cs) ? 0x00FF0000u : 0x00FF8000u;
+        }
+      }
+    }
   }
   return Status;
 }
