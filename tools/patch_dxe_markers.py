@@ -163,7 +163,7 @@ def main():
     dxemain = os.path.join(root, 'MdeModulePkg/Core/Dxe/DxeMain/DxeMain.c')
     if os.path.exists(dxemain):
         t = open(dxemain, 'r', errors='ignore').read()
-        anchor = 'Status = CoreInitializeDispatcher ();'
+        anchor = 'CoreDispatcher ();'
         idx = t.find(anchor)
         if idx >= 0:
             eol = t.find('\n', idx)
@@ -178,7 +178,7 @@ def main():
     dxemain = os.path.join(root, 'MdeModulePkg/Core/Dxe/DxeMain/DxeMain.c')
     if os.path.exists(dxemain):
         t = open(dxemain, 'r', errors='ignore').read()
-        anchor = 'Status = CoreInitializeDispatcher ();'
+        anchor = 'CoreDispatcher ();'
         idx = t.find(anchor)
         if idx >= 0:
             eol = t.find('\n', idx)
@@ -192,9 +192,9 @@ def main():
         disp = os.path.join(root, 'MdeModulePkg/Core/Dxe/Dispatcher/Dispatcher.c')
         if os.path.exists(disp):
             dt = open(disp, 'r', errors='ignore').read()
-            i2 = dt.find('Entry = DriverEntry->EntryPoint;')
+            i2 = dt.find('Status = CoreStartImage (DriverEntry->ImageHandle, NULL, NULL);')
             if i2 >= 0:
-                e2 = dt.find('\n', i2)
+                e2 = dt.find(chr(10), i2)
                 dt = dt[:e2 + 1] + '    DEBUG ((DEBUG_INFO, "DISPATCHING DRIVER"));\n' + dt[e2 + 1:]
                 open(disp, 'w').write(dt)
                 print('patched Dispatcher.c: driver announcement')
