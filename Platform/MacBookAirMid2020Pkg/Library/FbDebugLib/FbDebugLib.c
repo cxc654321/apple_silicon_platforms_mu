@@ -127,8 +127,26 @@ DebugBPrint (
 
 BOOLEAN
 EFIAPI
+DebugPrintEnabled (
+  VOID
+  )
+{
+  return TRUE;
+}
+
+BOOLEAN
+EFIAPI
 DebugPrintLevelEnabled (
   IN CONST UINTN  ErrorLevel
+  )
+{
+  return TRUE;
+}
+
+BOOLEAN
+EFIAPI
+DebugAssertEnabled (
+  VOID
   )
 {
   return TRUE;
